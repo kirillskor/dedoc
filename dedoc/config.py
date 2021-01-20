@@ -4,12 +4,6 @@ import importlib.util
 import argparse
 import sys
 
-parser_config = argparse.ArgumentParser()
-parser_config.add_argument("-c", "--config_path", help="path to configuration file")
-parser_config.add_argument("-m", "--module", help="Only for tests")
-parser_config.add_argument("-f", "--test_files", metavar="VALUE", nargs='*', help="Only for tests")
-parser_config.add_argument('-v', "--unitest_verbose_mode", nargs='?', help="to enable verbose mode of unittest. Only for tests")
-args_config = parser_config.parse_args()
 
 logging.basicConfig(stream=sys.stdout,
                     level=logging.INFO,
@@ -61,8 +55,9 @@ class Configuration(object):
         return cls.__instance
 
     def __initConfig(self):
-        if args_config.config_path is not None:
-            spec = importlib.util.spec_from_file_location("config_module", args_config.config_path)
+        config_path = os.getenv("CONFIG_PATH")
+        if config_path is not None:
+            spec = importlib.util.spec_from_file_location("config_module", config_path)
             config_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(config_module)
             self.__config = config_module._config
