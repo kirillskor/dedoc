@@ -4,6 +4,7 @@ import os
 import shutil
 import tempfile
 from typing import Optional, List, Dict
+from werkzeug.datastructures import FileStorage
 
 from dedoc.attachments_extractors.attachments_extractor_composition import AttachmentsExtractorComposition
 from dedoc.converters.file_converter import FileConverterComposition
@@ -59,7 +60,7 @@ class DedocManager:
         return manager
 
     def parse_file(self,
-                   file_path: str,
+                   file: FileStorage,
                    parameters: Dict[str, str],
                    original_file_name: Optional[str] = None) -> ParsedDocument:
         """
@@ -69,14 +70,19 @@ class DedocManager:
         :param original_file_name: name of original file (None if file was not ranamed)
         :return:
         """
-        if not os.path.isfile(path=file_path):
-            raise FileNotFoundError()
+        
+        file_path = file.filename
+        # if not os.path.isfile(path=file_path):
+        #     raise FileNotFoundError()
         self.logger.info("start handle {}".format(file_path))
         if original_file_name is None:
             original_file_name = os.path.basename(file_path)
         filename = get_unique_name(file_path)
         with tempfile.TemporaryDirectory() as tmp_dir:
-            shutil.copy(file_path, os.path.join(tmp_dir, filename))
+            tmp_path = os.path.join(tmp_dir, filename)
+            file.save(tmp_path)
+
+            #shutil.copy(file_path, os.path.join(tmp_dir, filename))
 
             # Step 1 - Converting
             filename_convert = self.converter.do_converting(tmp_dir, filename, parameters=parameters)

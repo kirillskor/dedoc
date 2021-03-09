@@ -2,6 +2,7 @@ import inspect
 import os
 import warnings
 from typing import Dict, List
+import logging
 
 from dedoc.common.exceptions.bad_file_exception import BadFileFormatException
 from dedoc.data_structures.unstructured_document import UnstructuredDocument
@@ -14,6 +15,9 @@ class ReaderComposition(object):
 
     def __init__(self, readers: List[BaseReader]):
         self.readers = readers
+        logger = logging.getLogger(__name__)
+        self.logger = logger
+
 
     def parse_file(self, tmp_dir: str, filename: str, parameters: Dict[str, str]) -> [UnstructuredDocument, bool]:
 
@@ -21,8 +25,10 @@ class ReaderComposition(object):
         file_path = os.path.join(tmp_dir, filename)
         mime = get_file_mime_type(file_path)
         document_type = parameters.get("document_type")
+        self.logger.info("ReaderComposition.parse_file")
 
         for reader in self.readers:
+            
             if "parameters" in inspect.getfullargspec(reader.can_read).args:
                 can_read = reader.can_read(path=file_path,
                                            mime=mime,
@@ -38,6 +44,8 @@ class ReaderComposition(object):
                                            extension=extension,
                                            document_type=document_type)
             if can_read:
+                self.logger.info("ReaderComposition.can_read")
+                self.logger.info(str(reader))
                 unstructured_document, need_analyze_attachments = reader.read(path=file_path,
                                                                               document_type=document_type,
                                                                               parameters=parameters

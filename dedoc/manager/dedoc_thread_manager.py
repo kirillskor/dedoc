@@ -43,6 +43,7 @@ class ThreadManager(Thread):
         sleep_time = 0.01
         while True:
             if self.queue.empty():
+                self.logger.info("{} queue is empty".format(self.queue.qsize()))
                 sleep(sleep_time)
                 sleep_time = min(sleep_time * 2, 1)
             else:
